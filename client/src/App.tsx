@@ -1,53 +1,91 @@
-import { useRef, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls, Text } from '@react-three/drei'
+import { Canvas } from '@react-three/fiber'
+import { OrbitControls, Environment, Sky } from '@react-three/drei'
 import * as THREE from 'three'
-
-function Box(props: any) {
-  // This reference gives us direct access to the mesh
-  const ref = useRef<THREE.Mesh>(null!)
-  // Hold state for hovered and clicked events
-  const [hovered, hover] = useState(false)
-  const [clicked, click] = useState(false)
-  // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => (ref.current.rotation.x += delta))
-  // Return view, these are regular Threejs elements expressed in JSX
-  return (
-    <mesh
-      {...props}
-      ref={ref}
-      scale={clicked ? 1.5 : 1}
-      onClick={(event) => click(!clicked)}
-      onPointerOver={(event) => hover(true)}
-      onPointerOut={(event) => hover(false)}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
-    </mesh>
-  )
-}
+import Torii from './components/world/Torii'
+import Honden from './components/world/Honden'
+import Reimu from './components/characters/Reimu'
+import Youkai from './components/characters/Youkai'
 
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
       <planeGeometry args={[100, 100]} />
-      <meshStandardMaterial color="#333" />
+      <meshStandardMaterial color="#2ecc71" />
     </mesh>
   )
 }
 
+function Path() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 5]} receiveShadow>
+       <planeGeometry args={[2, 12]} />
+       <meshStandardMaterial color="#95a5a6" />
+    </mesh>
+  )
+}
+
+function Lantern(props: any) {
+    return (
+        <group {...props}>
+             {/* Base */}
+            <mesh position={[0, 0.5, 0]}>
+                <boxGeometry args={[0.4, 1, 0.4]} />
+                <meshStandardMaterial color="#7f8c8d" />
+            </mesh>
+             {/* Light Box */}
+            <mesh position={[0, 1.2, 0]}>
+                <boxGeometry args={[0.5, 0.6, 0.5]} />
+                <meshStandardMaterial color="#e67e22" emissive="#d35400" emissiveIntensity={0.5} />
+            </mesh>
+             {/* Roof */}
+            <mesh position={[0, 1.6, 0]} rotation={[0, Math.PI/4, 0]}>
+                <coneGeometry args={[0.6, 0.4, 4]} />
+                <meshStandardMaterial color="#34495e" />
+            </mesh>
+        </group>
+    )
+
+}
+
+
 export default function App() {
   return (
-    <Canvas camera={{ position: [0, 2, 5] }}>
-      <ambientLight intensity={Math.PI / 2} />
-      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
-      <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 0, 0]} />
+    <Canvas shadows camera={{ position: [5, 5, 10], fov: 60 }}>
+      <Sky sunPosition={[100, 20, 100]} turbidity={0.1} rayleigh={0.5} mieCoefficient={0.005} mieDirectionalG={0.8} />
+      <ambientLight intensity={0.5} />
+      <directionalLight 
+        position={[10, 10, 5]} 
+        intensity={1.5} 
+        castShadow 
+        shadow-mapSize-width={1024} 
+        shadow-mapSize-height={1024}
+      />
+      
+      {/* World Objects */}
+      <Torii position={[0, 0, 8]} scale={[1.5, 1.5, 1.5]} />
+      <Honden position={[0, 0, -2]} scale={[1.2, 1.2, 1.2]} rotation={[0, 0, 0]} />
+      
+      {/* Stone Path */}
+      <Path />
+      
+      {/* --- Characters --- */}
+      {/* Reimu Patrols */}
+      <Reimu position={[0, 0, 4]} />
+      
+      {/* Youkai Ambush! */}
+      <Youkai position={[-3, 2, 7]} color="hotpink" />
+      <Youkai position={[3, 1.5, 7.5]} color="cyan" />
+      <Youkai position={[0.5, 3, 5]} color="gold" />
+
+      {/* Stone Lanterns lining the path */}
+      <Lantern position={[-2, 0, 6]} />
+      <Lantern position={[2, 0, 6]} />
+      <Lantern position={[-2, 0, 3]} />
+      <Lantern position={[2, 0, 3]} />
+
+
       <Ground />
-      <OrbitControls />
-      <Text position={[0, 2, 0]} fontSize={0.5} color="white">
-        Gensokyo Engine v0.1
-      </Text>
+      <OrbitControls maxPolarAngle={Math.PI / 2 - 0.1} /> {/* Prevent camera going underground */}
     </Canvas>
   )
 }
