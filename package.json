@@ -1,0 +1,22 @@
+{
+  "name": "gensokyo-engine",
+  "version": "0.1.0",
+  "description": "A browser-based sandbox engine for building, playing, and sharing worlds.",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run start:server\" \"npm run start:client\"",
+    "start:client": "npm start --workspace=client",
+    "start:server": "npm start --workspace=server",
+    "build": "npm run build --workspaces",
+    "test": "npm test --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "author": "Nitori Kawashiro",
+  "license": "ISC"
+}
